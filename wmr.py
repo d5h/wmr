@@ -49,7 +49,8 @@ class WatermarkRemover(object):
 
     def test_levels(self, h1, h2, show_hist=False):
         d = h2 - h1
-        target_ss = np.sqrt(np.sum(d ** 2) / d.size)
+        orig_ss = np.sqrt(np.sum(d ** 2) / d.size)
+        best_ss = orig_ss
         best_opacity = 0
         for opacity in range(self.OPACITY_RANGE[0], self.OPACITY_RANGE[1] + 1):
             alpha = opacity / 100.
@@ -63,40 +64,41 @@ class WatermarkRemover(object):
                             new_h2[new_n, c] += hchans[c]
             new_d = new_h2 - h1
             ss = np.sqrt(np.sum(new_d ** 2) / new_d.size)
-            if ss < target_ss:
-                print 'old:', target_ss, '; new:', ss, '; opacity:', opacity
-                target_ss = ss
+            if ss < best_ss:
+                best_ss = ss
                 best_opacity = opacity
+                best_h2 = new_h2
+                best_d = new_d
 
-                if show_hist:
-                    fig = plt.figure()
-                    # Will crash if pure black
-                    xmin = min(np.nonzero(h2)[0][0], np.nonzero(new_h2)[0][0])
-                    xmax = max(np.nonzero(h2)[0][-1], np.nonzero(new_h2)[0][-1])
-                    xs = range(int(xmin), int(xmax) + 1)
-                    ax = fig.add_subplot(2, 2, 1)
-                    ax.plot(xs, h2[xmin:xmax + 1, 0], 'b-', xs, h2[xmin:xmax + 1, 1], 'g-', xs, h2[xmin:xmax + 1, 2], 'r-')
-                    ax.grid(True)
-                    plt.xlabel('Base')
+        if show_hist and best_opacity:
+            print 'orig=%.2f, new=%.2f, opac=%d' % (orig_ss, best_ss, best_opacity)
+            fig = plt.figure()
+            # Will crash if pure black
+            xmin = min(np.nonzero(h2)[0][0], np.nonzero(best_h2)[0][0])
+            xmax = max(np.nonzero(h2)[0][-1], np.nonzero(best_h2)[0][-1])
+            xs = range(int(xmin), int(xmax) + 1)
+            ax = fig.add_subplot(2, 2, 1)
+            ax.plot(xs, h2[xmin:xmax + 1, 0], 'b-', xs, h2[xmin:xmax + 1, 1], 'g-', xs, h2[xmin:xmax + 1, 2], 'r-')
+            ax.grid(True)
+            plt.xlabel('Base')
 
-                    ax = fig.add_subplot(2, 2, 3)
-                    ax.plot(xs, new_h2[xmin:xmax + 1, 0], 'b-', xs, new_h2[xmin:xmax + 1, 1], 'g-', xs, new_h2[xmin:xmax + 1, 2], 'r-')
-                    ax.grid(True)
-                    plt.xlabel('New')
+            ax = fig.add_subplot(2, 2, 3)
+            ax.plot(xs, best_h2[xmin:xmax + 1, 0], 'b-', xs, best_h2[xmin:xmax + 1, 1], 'g-', xs, best_h2[xmin:xmax + 1, 2], 'r-')
+            ax.grid(True)
+            plt.xlabel('New')
 
-                    ax = fig.add_subplot(2, 2, 2)
-                    ax.plot(xs, d[xmin:xmax + 1, 0], 'b-', xs, d[xmin:xmax + 1, 1], 'g-', xs, d[xmin:xmax + 1, 2], 'r-')
-                    ax.grid(True)
-                    plt.xlabel('Base Diff')
+            ax = fig.add_subplot(2, 2, 2)
+            ax.plot(xs, d[xmin:xmax + 1, 0], 'b-', xs, d[xmin:xmax + 1, 1], 'g-', xs, d[xmin:xmax + 1, 2], 'r-')
+            ax.grid(True)
+            plt.xlabel('Base Diff')
 
-                    ax = fig.add_subplot(2, 2, 4)
-                    ax.plot(xs, new_d[xmin:xmax + 1, 0], 'b-', xs, new_d[xmin:xmax + 1, 1], 'g-', xs, new_d[xmin:xmax + 1, 2], 'r-')
-                    ax.grid(True)
-                    plt.xlabel('New Diff')
+            ax = fig.add_subplot(2, 2, 4)
+            ax.plot(xs, best_d[xmin:xmax + 1, 0], 'b-', xs, best_d[xmin:xmax + 1, 1], 'g-', xs, best_d[xmin:xmax + 1, 2], 'r-')
+            ax.grid(True)
+            plt.xlabel('New Diff')
 
-                    plt.show()
+            plt.show()
 
-        print best_opacity
         self.opacity_bins[best_opacity] += 1
         return best_opacity
 
