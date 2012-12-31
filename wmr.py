@@ -55,18 +55,18 @@ class WatermarkRemover(object):
             alpha = opacity / 100.
             new_h2 = np.copy(h2)
             for n, hchans in enumerate(d):
-                if np.all(0 < hchans):
-                    new_n = (n - alpha * 255) / (1 - alpha)
-                    if 0 <= new_n <= 255:
-                        new_h2[n] -= hchans
-                        new_h2[new_n] += hchans
+                new_n = (n - alpha * 255) / (1 - alpha)
+                if 0 <= new_n <= 255:
+                    for c in range(3):
+                        if 0 < hchans[c] and d[new_n, c] < 0:
+                            new_h2[n, c] -= hchans[c]
+                            new_h2[new_n, c] += hchans[c]
             new_d = new_h2 - h1
             ss = np.sqrt(np.sum(new_d ** 2) / new_d.size)
             if ss < target_ss:
-                print 'old', target_ss
+                print 'old:', target_ss, '; new:', ss, '; opacity:', opacity
                 target_ss = ss
                 best_opacity = opacity
-                print 'new', ss
 
                 if show_hist:
                     fig = plt.figure()
@@ -74,15 +74,25 @@ class WatermarkRemover(object):
                     xmin = min(np.nonzero(h2)[0][0], np.nonzero(new_h2)[0][0])
                     xmax = max(np.nonzero(h2)[0][-1], np.nonzero(new_h2)[0][-1])
                     xs = range(int(xmin), int(xmax) + 1)
-                    ax = fig.add_subplot(2, 1, 1)
+                    ax = fig.add_subplot(2, 2, 1)
                     ax.plot(xs, h2[xmin:xmax + 1, 0], 'b-', xs, h2[xmin:xmax + 1, 1], 'g-', xs, h2[xmin:xmax + 1, 2], 'r-')
                     ax.grid(True)
                     plt.xlabel('Base')
 
-                    ax = fig.add_subplot(2, 1, 2)
+                    ax = fig.add_subplot(2, 2, 3)
                     ax.plot(xs, new_h2[xmin:xmax + 1, 0], 'b-', xs, new_h2[xmin:xmax + 1, 1], 'g-', xs, new_h2[xmin:xmax + 1, 2], 'r-')
                     ax.grid(True)
                     plt.xlabel('New')
+
+                    ax = fig.add_subplot(2, 2, 2)
+                    ax.plot(xs, d[xmin:xmax + 1, 0], 'b-', xs, d[xmin:xmax + 1, 1], 'g-', xs, d[xmin:xmax + 1, 2], 'r-')
+                    ax.grid(True)
+                    plt.xlabel('Base Diff')
+
+                    ax = fig.add_subplot(2, 2, 4)
+                    ax.plot(xs, new_d[xmin:xmax + 1, 0], 'b-', xs, new_d[xmin:xmax + 1, 1], 'g-', xs, new_d[xmin:xmax + 1, 2], 'r-')
+                    ax.grid(True)
+                    plt.xlabel('New Diff')
 
                     plt.show()
 
