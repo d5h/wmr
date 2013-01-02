@@ -1,0 +1,8 @@
+Basic algorithm may be working.  See no_alpha.png and alpha.png.  Note
+that the alpha "hump" may not be completely knocked down because part
+of the new alpha-inflicted colors may be left over from the previous
+window.  If you look at the updated diff plot, it seems to be doing a
+decent job of eliminating the alpha effect.
+
+Now we just need to either apply it as we go, or try to figure out
+what the alpha value is and apply it after the initial scan.
