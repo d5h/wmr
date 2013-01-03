@@ -41,6 +41,7 @@ class WatermarkRemover(object):
                     d = h2 - h1
                     orig_vars = self.vars_from_hist(h2)
                     orig_ss = np.sqrt(np.sum(d ** 2) / d.size)
+                    best_h2 = h2
                     best_ss = orig_ss
                     best_opacity = 0
                     for opacity in range(self.OPACITY_RANGE[0], self.OPACITY_RANGE[1] + 1):
@@ -58,6 +59,7 @@ class WatermarkRemover(object):
                     self.adjust(h2, d, best_opacity / 100.,
                                 row_start=r, col_start=c + window_size[1] - step[1],
                                 height=window_size[0], width=step[1])
+                    histograms[h_index] = best_h2
 
                     if show_hist and best_opacity:
                         print 'orig=%.2f, new=%.2f, opac=%d' % (orig_ss, best_ss, best_opacity)
