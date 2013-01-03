@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import os
+
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
@@ -37,18 +39,21 @@ class WatermarkRemover(object):
                     h1 = histograms[h_index - 1]
                     h2 = histograms[h_index]
                     d = h2 - h1
+                    orig_vars = self.vars_from_hist(h2)
                     orig_ss = np.sqrt(np.sum(d ** 2) / d.size)
                     best_ss = orig_ss
                     best_opacity = 0
                     for opacity in range(self.OPACITY_RANGE[0], self.OPACITY_RANGE[1] + 1):
                         new_h2 = self.adjust(h2, d, opacity / 100.)
-                        new_d = new_h2 - h1
-                        ss = np.sqrt(np.sum(new_d ** 2) / new_d.size)
-                        if ss < best_ss:
-                            best_ss = ss
-                            best_opacity = opacity
-                            best_h2 = new_h2
-                            best_d = new_d
+                        new_vars = self.vars_from_hist(new_h2)
+                        if all(new_vars < orig_vars):
+                            new_d = new_h2 - h1
+                            ss = np.sqrt(np.sum(new_d ** 2) / new_d.size)
+                            if ss < best_ss:
+                                best_ss = ss
+                                best_opacity = opacity
+                                best_h2 = new_h2
+                                best_d = new_d
 
                     self.adjust(h2, d, best_opacity / 100.,
                                 row_start=r, col_start=c + window_size[1] - step[1],
@@ -116,9 +121,29 @@ class WatermarkRemover(object):
                 if window[r, c, channel] == old:
                     window[r, c, channel] = new
 
+    def vars_from_hist(self, h):
+        return np.array([self.var_from_hist(h[:, c]) for c in range(h.shape[1])])
+
+    def var_from_hist(self, h):
+        ave = 0.
+        n = 0
+        for i, b in enumerate(h):
+            ave += b * i
+            n += b
+        ave /= n
+
+        var = 0.
+        for i, b in enumerate(h):
+            var += b * (i - ave) ** 2
+
+        return var / n
+
 
 if __name__ == '__main__':
     import sys
-    wmr = WatermarkRemover.load_image(sys.argv[1])
+    path = sys.argv[1]
+    _, ext = os.path.splitext(path)
+    wmr = WatermarkRemover.load_image(path)
+    cv2.imwrite('output%s' % ext, wmr.arr)
     cv2.imshow("Demo", wmr.arr)
     cv2.waitKey()
