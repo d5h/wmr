@@ -110,7 +110,7 @@ class WatermarkRemover(object):
             new_n = (n - alpha * 255) / (1 - alpha)
             if 0 <= new_n <= 255:
                 for c in range(3):
-                    if 0 < hchans[c]: # and d[new_n, c] < 0:
+                    if 0 < hchans[c] and h[new_n, c]: # and d[new_n, c] < 0:
                         new_h[n, c] -= hchans[c]
                         new_h[new_n, c] += hchans[c]
                         if window is not None:
