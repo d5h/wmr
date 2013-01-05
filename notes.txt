@@ -6,3 +6,6 @@ decent job of eliminating the alpha effect.
 
 Now we just need to either apply it as we go, or try to figure out
 what the alpha value is and apply it after the initial scan.
+
+We might be close to done if we went with the interactive "eraser" and
+allowed the opacity to be tweaked manually.

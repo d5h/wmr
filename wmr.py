@@ -19,8 +19,8 @@ class WatermarkRemover(object):
         self.arr = image
         self.process()
 
-    def process(self, window_size=(40, 40), step=(10, 10), show_rect=False, show_hist=False):
-        assert step[0] < window_size[0] and step[1] < window_size[1]
+    def process(self, window_size=(40, 40), step=(40, 10), show_rect=False, show_hist=False):
+        assert step[0] < window_size[0] or step[1] < window_size[1]
         a = self.arr
         histograms = []
         row_starts = range(0, a.shape[0] - window_size[0], step[0])
