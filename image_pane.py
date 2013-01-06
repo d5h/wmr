@@ -65,7 +65,7 @@ class ImageWmrGlue(object):
         self.wmr.set_roi(x, y, self.cursor_size, self.cursor_size)
         self.wmr.process()
 
-        img = array2qimage(self.wmr.image)
+        img = array2qimage(self.wmr.image[:, :, ::-1])
         self.win.pixmap.convertFromImage(img)
         self.win.label.repaint()
 
