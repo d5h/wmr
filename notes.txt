@@ -9,3 +9,19 @@ what the alpha value is and apply it after the initial scan.
 
 We might be close to done if we went with the interactive "eraser" and
 allowed the opacity to be tweaked manually.
+
+Interactive
+===========
+
+The plan:
+- Use PyQt4
+- Ideally use two windows, one for the image and one for the tools
+  - This allows the image window to be any size without affecting the tools window layout
+- The tools window has widgets for the following
+  - Resize the eraser widget
+  - Adjust the opacity
+  - Show an image of histogram plots
+  - Undo
+- The cursor on the image can do the following
+  - Left click to attempt to erase a watermark
+  - Once clicked the rectangle is recorded so the opacity can be changed and undo can work

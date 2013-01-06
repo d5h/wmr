@@ -13,11 +13,25 @@ class WatermarkRemover(object):
 
     @classmethod
     def load_image(cls, path):
-        return cls(cv2.imread(path))
+        image = cv2.imread(path)
+        # BGR -> RGB hack
+        #image = image[:, :, ::-1]
+        return cls(image)
 
     def __init__(self, image):
+        self.image = image
         self.arr = image
-        self.process()
+
+    def save_image(self, path):
+        #image = self.image[:, :, ::-1]
+        cv2.imwrite(path, image)
+
+    def set_roi(self, x, y, w, h):
+        left = max(0, x - w)
+        top = max(0, y)
+        right = x + w + 1
+        bottom = y + h + 1
+        self.arr = self.image[top:bottom, left:right]
 
     def process(self, window_size=(40, 40), step=(40, 10), show_rect=False, show_hist=False):
         assert step[0] < window_size[0] or step[1] < window_size[1]
@@ -69,22 +83,22 @@ class WatermarkRemover(object):
                         xmax = max(np.nonzero(h2)[0][-1], np.nonzero(best_h2)[0][-1])
                         xs = range(int(xmin), int(xmax) + 1)
                         ax = fig.add_subplot(2, 2, 1)
-                        ax.plot(xs, h2[xmin:xmax + 1, 0], 'b-', xs, h2[xmin:xmax + 1, 1], 'g-', xs, h2[xmin:xmax + 1, 2], 'r-')
+                        ax.plot(xs, h2[xmin:xmax + 1, 0], 'r-', xs, h2[xmin:xmax + 1, 1], 'g-', xs, h2[xmin:xmax + 1, 2], 'b-')
                         ax.grid(True)
                         plt.xlabel('Base')
 
                         ax = fig.add_subplot(2, 2, 3)
-                        ax.plot(xs, best_h2[xmin:xmax + 1, 0], 'b-', xs, best_h2[xmin:xmax + 1, 1], 'g-', xs, best_h2[xmin:xmax + 1, 2], 'r-')
+                        ax.plot(xs, best_h2[xmin:xmax + 1, 0], 'r-', xs, best_h2[xmin:xmax + 1, 1], 'g-', xs, best_h2[xmin:xmax + 1, 2], 'b-')
                         ax.grid(True)
                         plt.xlabel('New')
 
                         ax = fig.add_subplot(2, 2, 2)
-                        ax.plot(xs, d[xmin:xmax + 1, 0], 'b-', xs, d[xmin:xmax + 1, 1], 'g-', xs, d[xmin:xmax + 1, 2], 'r-')
+                        ax.plot(xs, d[xmin:xmax + 1, 0], 'r-', xs, d[xmin:xmax + 1, 1], 'g-', xs, d[xmin:xmax + 1, 2], 'b-')
                         ax.grid(True)
                         plt.xlabel('Base Diff')
 
                         ax = fig.add_subplot(2, 2, 4)
-                        ax.plot(xs, best_d[xmin:xmax + 1, 0], 'b-', xs, best_d[xmin:xmax + 1, 1], 'g-', xs, best_d[xmin:xmax + 1, 2], 'r-')
+                        ax.plot(xs, best_d[xmin:xmax + 1, 0], 'r-', xs, best_d[xmin:xmax + 1, 1], 'g-', xs, best_d[xmin:xmax + 1, 2], 'b-')
                         ax.grid(True)
                         plt.xlabel('New Diff')
 
@@ -146,6 +160,7 @@ if __name__ == '__main__':
     path = sys.argv[1]
     _, ext = os.path.splitext(path)
     wmr = WatermarkRemover.load_image(path)
-    cv2.imwrite('output%s' % ext, wmr.arr)
+    wmr.process()
+    wmr.save_image('output%s' % ext)
     cv2.imshow("Demo", wmr.arr)
     cv2.waitKey()
